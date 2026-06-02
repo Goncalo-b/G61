@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="pt">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ELearn G61</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+  {% block head %}{% endblock %}
+</head>
+<body>
+<nav>
+  <ul class="menu">
+    <li><a class="menu-brand" href="/">🎓 ELearn G61</a></li>
+    {% if ulogin %}
+      <li><a class="button" href="/gform/Platform">Platform</a></li>
+      <li><a class="button" href="/gform/Certificate">Certificate</a></li>
+      <li><a class="button" href="/gform/Course">Course</a></li>
+      <li><a class="button" href="/gform/Person">Person</a></li>
+      <li><a class="button" href="/gform/Trans">Transaction</a></li>
+      <li><a class="button" href="/analysis">Analysis</a></li>
+      <li class="menu-spacer"></li>
+      <li><span class="user-pill">{{ ulogin }}</span></li>
+      <li><a class="btn-logoff" href="/logoff">Logoff</a></li>
+    {% else %}
+      <li class="menu-spacer"></li>
+      <li><a class="button" href="/login">Login</a></li>
+    {% endif %}
+  </ul>
+</nav>
+{% block content %}{% endblock %}
+</body>
+</html>

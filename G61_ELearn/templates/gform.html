@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="page">
+
+  <div class="page-header">
+    <h2 class="page-title">{{ header }}</h2>
+    {% if total > 0 %}
+      <span class="record-counter">Record {{ recnum }} of {{ total }}</span>
+    {% endif %}
+  </div>
+
+  <div class="card">
+
+    {% if msg %}
+      {% if msg.startswith('ok:') %}
+        <div class="flash-msg flash-ok">✓ {{ msg[3:] }}</div>
+      {% else %}
+        <div class="flash-msg flash-err">✕ {{ msg[4:] }}</div>
+      {% endif %}
+    {% endif %}
+
+    <form class="search-bar" action="/gform/{{ cname }}" method="get">
+      <input type="hidden" name="option" value="goto"/>
+      <label>Jump to ID:</label>
+      <input class="search-input" type="text" name="search_id" placeholder="e.g. 42"/>
+      <button type="submit" class="button1 btn-search">Go</button>
+    </form>
+
+    <div class="btn-row">
+      <button type="button" {{ butshow }} class="button1 btn-edit"
+              onclick="window.location.href='/gform/{{ cname }}?option=edit'">✏ Edit</button>
+      <button type="button" {{ butshow }} class="button1 btn-delete"
+              onclick="if(confirm('Eliminar este registo?')) window.location.href='/gform/{{ cname }}?option=delete'">🗑 Delete</button>
+      <button type="button" {{ butshow }} class="button1 btn-insert"
+              onclick="window.location.href='/gform/{{ cname }}?option=insert'">＋ Insert</button>
+      <button type="submit" form="gform" {{ butedit }} class="button1 btn-save">💾 Save</button>
+      <button type="button" {{ butedit }} class="button1 btn-cancel"
+              onclick="window.location.href='/gform/{{ cname }}?option=cancel'">✕ Cancel</button>
+      <div class="btn-spacer"></div>
+      <button type="button" {{ butshow }} class="button1 btn-exit"
+              onclick="window.location.href='/gform/{{ cname }}?option=exit'">← Exit</button>
+    </div>
+
+    <form id="gform" action="/gform/{{ cname }}?option=save" method="post">
+      <table class="form-table">
+        {% for key in att %}
+        <tr>
+          <td class="label-col">{{ des[loop.index0] }}</td>
+          <td>
+            {% set val = obj[key] %}
+            {% if loop.index == 1 %}
+              {# Primary key - always readonly #}
+              <input class="form-input" type="text" readonly
+                     name="{{ key }}" value="{{ val }}"/>
+
+            {% elif 'date' in key %}
+              {# Date fields - date picker #}
+              <input class="form-input" type="date" {{ butedit }}
+                     name="{{ key }}" value="{{ val }}"/>
+
+            {% elif 'fee' in key %}
+              {# Fee - number with decimals #}
+              <input class="form-input" type="number" {{ butedit }}
+                     name="{{ key }}" value="{{ val }}"
+                     step="0.01" min="0"/>
+
+            {% elif 'age' in key %}
+              {# Age - integer number #}
+              <input class="form-input" type="number" {{ butedit }}
+                     name="{{ key }}" value="{{ val }}"
+                     min="1" max="120"/>
+
+            {% elif key == '_certificate_type' %}
+              <select class="form-select form-input" name="{{ key }}" {{ butedit }}>
+                {% for opt in ['completion','advanced','specialization','professional'] %}
+                  <option value="{{ opt }}" {% if val == opt %}selected{% endif %}>{{ opt }}</option>
+                {% endfor %}
+              </select>
+
+            {% elif key == '_payment_method' %}
+              <select class="form-select form-input" name="{{ key }}" {{ butedit }}>
+                {% for opt in ['Credit Card','PayPal','Bank Transfer','Debit Card'] %}
+                  <option value="{{ opt }}" {% if val == opt %}selected{% endif %}>{{ opt }}</option>
+                {% endfor %}
+              </select>
+
+            {% elif key == '_course_category' %}
+              <select class="form-select form-input" name="{{ key }}" {{ butedit }}>
+                {% for opt in ['Data Science & AI','Technology & IT','Business & Management','Finance & Accounting','Design & Creative','Marketing & Sales','Professional Development'] %}
+                  <option value="{{ opt }}" {% if val == opt %}selected{% endif %}>{{ opt }}</option>
+                {% endfor %}
+              </select>
+
+            {% elif key == '_certificate_language' %}
+              <select class="form-select form-input" name="{{ key }}" {{ butedit }}>
+                {% for opt in ['English','Spanish','Portuguese','French','German','Italian'] %}
+                  <option value="{{ opt }}" {% if val == opt %}selected{% endif %}>{{ opt }}</option>
+                {% endfor %}
+              </select>
+
+            {% else %}
+              <input class="form-input" type="text" {{ butedit }}
+                     name="{{ key }}" value="{{ val }}"/>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </table>
+    </form>
+
+    <div class="nav-row">
+      <button type="button" {{ butshow }} class="button1 btn-nav"
+              onclick="window.location.href='/gform/{{ cname }}?option=first'">⏮ First</button>
+      <button type="button" {{ butshow }} class="button1 btn-nav"
+              onclick="window.location.href='/gform/{{ cname }}?option=previous'">◀ Previous</button>
+      <button type="button" {{ butshow }} class="button1 btn-nav"
+              onclick="window.location.href='/gform/{{ cname }}?option=next'">Next ▶</button>
+      <button type="button" {{ butshow }} class="button1 btn-nav"
+              onclick="window.location.href='/gform/{{ cname }}?option=last'">Last ⏭</button>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="login-wrap">
+  <h1 class="login-title">Login</h1>
+  <div class="card">
+    <form action="/chklogin" method="post">
+      <div class="login-group">
+        <label>Utilizador</label>
+        <input type="text" name="user" autocomplete="username" placeholder="username" autofocus/>
+      </div>
+      <div class="login-group">
+        <label>Password</label>
+        <input type="password" name="password" autocomplete="current-password" placeholder="••••••••"/>
+      </div>
+      <button type="submit" class="login-btn">Entrar →</button>
+    </form>
+    {% if resul %}
+      <p class="login-error">⚠ {{ resul }}</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

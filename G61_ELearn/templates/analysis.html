@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% block head %}
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="page-wide">
+  <div class="page-header">
+    <h2 class="page-title">📊 Análise de Dados</h2>
+    <a href="/" class="button1 btn-exit">← Voltar</a>
+  </div>
+
+  <div style="text-align:center; margin-bottom:1rem;">
+    <table class="kpi-table">
+      <tr><th>Métrica</th><th>Valor</th></tr>
+      <tr><td>Receita Total</td>       <td>{{ "%.2f"|format(kpis.total_revenue) }} €</td></tr>
+      <tr><td>Fee Média</td>           <td>{{ "%.2f"|format(kpis.avg_fee) }} €</td></tr>
+      <tr><td>Fee Máxima</td>          <td>{{ "%.2f"|format(kpis.max_fee) }} €</td></tr>
+      <tr><td>Fee Mínima</td>          <td>{{ "%.2f"|format(kpis.min_fee) }} €</td></tr>
+      <tr><td>Total Transações</td>    <td>{{ kpis.total_trans }}</td></tr>
+      <tr><td>Plataformas Ativas</td>  <td>{{ kpis.active_platforms }}</td></tr>
+    </table>
+  </div>
+
+  <div class="chart-full card" style="padding:1rem;">
+    {{ charts[0] | safe }}
+  </div>
+
+  <div class="charts-grid-2">
+    <div class="card" style="padding:1rem;">{{ charts[1] | safe }}</div>
+    <div class="card" style="padding:1rem;">{{ charts[4] | safe }}</div>
+  </div>
+
+  <div class="chart-full card" style="padding:1rem;">
+    {{ charts[2] | safe }}
+  </div>
+
+  <div class="chart-full card" style="padding:1rem;">
+    {{ charts[3] | safe }}
+  </div>
+
+  <br>
+</div>
+{% endblock %}

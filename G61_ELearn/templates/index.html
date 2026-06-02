@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="hero">
+  <h1>E-Learning Certificates</h1>
+  <p>Grupo 61 &nbsp;·&nbsp; FEUP PC II 2025/2026</p>
+
+  {% if ulogin %}
+    <div class="kpi-grid">
+      <a class="kpi-box" href="/gform/Platform">
+        <div class="num">{{ stats.platforms }}</div>
+        <div class="lbl">Platforms</div>
+      </a>
+      <a class="kpi-box" href="/gform/Certificate">
+        <div class="num">{{ stats.certificates }}</div>
+        <div class="lbl">Certificates</div>
+      </a>
+      <a class="kpi-box" href="/gform/Course">
+        <div class="num">{{ stats.courses }}</div>
+        <div class="lbl">Courses</div>
+      </a>
+      <a class="kpi-box" href="/gform/Person">
+        <div class="num">{{ stats.persons }}</div>
+        <div class="lbl">Persons</div>
+      </a>
+      <a class="kpi-box" href="/gform/Trans">
+        <div class="num">{{ stats.transactions }}</div>
+        <div class="lbl">Transactions</div>
+      </a>
+    </div>
+    <a href="/analysis" class="button1 btn-save" style="font-size:.9rem; padding:10px 28px;">
+      📊 Ver Análise de Dados
+    </a>
+  {% else %}
+    <a href="/login" class="button1 btn-save" style="font-size:.9rem; padding:10px 32px;">
+      Entrar
+    </a>
+  {% endif %}
+</div>
+{% endblock %}
