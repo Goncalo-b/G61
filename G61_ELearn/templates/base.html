@@ -17,6 +17,7 @@
       <li><a class="button" href="/gform/Course">Course</a></li>
       <li><a class="button" href="/gform/Person">Person</a></li>
       <li><a class="button" href="/gform/Trans">Transaction</a></li>
+      <li><a class="button" href="/stats">Stats</a></li>
       <li><a class="button" href="/analysis">Analysis</a></li>
       <li class="menu-spacer"></li>
       <li><span class="user-pill">{{ ulogin }}</span></li>
@@ -28,5 +29,15 @@
   </ul>
 </nav>
 {% block content %}{% endblock %}
+<script>
+  // Active nav link
+  var path = window.location.pathname;
+  document.querySelectorAll('nav .button').forEach(function(a) {
+    var href = a.getAttribute('href');
+    if (href && href !== '/' && path.startsWith(href)) {
+      a.classList.add('nav-active');
+    }
+  });
+</script>
 </body>
 </html>

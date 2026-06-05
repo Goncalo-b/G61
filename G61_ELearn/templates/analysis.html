@@ -10,6 +10,7 @@
     <a href="/" class="button1 btn-exit">← Voltar</a>
   </div>
 
+
   <div style="text-align:center; margin-bottom:1rem;">
     <table class="kpi-table">
       <tr><th>Métrica</th><th>Valor</th></tr>
@@ -22,18 +23,22 @@
     </table>
   </div>
 
+
   <div class="chart-full card" style="padding:1rem;">
     {{ charts[0] | safe }}
   </div>
+
 
   <div class="charts-grid-2">
     <div class="card" style="padding:1rem;">{{ charts[1] | safe }}</div>
     <div class="card" style="padding:1rem;">{{ charts[4] | safe }}</div>
   </div>
 
+
   <div class="chart-full card" style="padding:1rem;">
     {{ charts[2] | safe }}
   </div>
+
 
   <div class="chart-full card" style="padding:1rem;">
     {{ charts[3] | safe }}

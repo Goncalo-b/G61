@@ -4,27 +4,93 @@
 
   <div class="page-header">
     <h2 class="page-title">{{ header }}</h2>
-    {% if total > 0 %}
-      <span class="record-counter">Record {{ recnum }} of {{ total }}</span>
-    {% endif %}
+    <div style="display:flex;align-items:center;gap:.6rem;">
+      {% if is_filtered %}<span class="filter-badge">🔍 Filtered</span>{% endif %}
+      {% if total > 0 %}
+        <span class="record-counter">
+          {{ recnum }} / {{ total }}{% if is_filtered %} <span style="color:var(--muted);font-weight:400;">of {{ total_unfiltered }}</span>{% endif %}
+        </span>
+      {% elif is_filtered %}
+        <span class="record-counter" style="color:var(--red);">Sem resultados</span>
+      {% endif %}
+    </div>
   </div>
 
   <div class="card">
 
     {% if msg %}
-      {% if msg.startswith('ok:') %}
-        <div class="flash-msg flash-ok">✓ {{ msg[3:] }}</div>
-      {% else %}
-        <div class="flash-msg flash-err">✕ {{ msg[4:] }}</div>
-      {% endif %}
+    <div class="flash-msg {{ 'flash-ok' if msg.startswith('ok:') else 'flash-err' }}" id="flash-msg">
+      {{ '✓' if msg.startswith('ok:') else '✕' }} {{ msg[3:] }}
+    </div>
     {% endif %}
 
-    <form class="search-bar" action="/gform/{{ cname }}" method="get">
-      <input type="hidden" name="option" value="goto"/>
-      <label>Jump to ID:</label>
-      <input class="search-input" type="text" name="search_id" placeholder="e.g. 42"/>
-      <button type="submit" class="button1 btn-search">Go</button>
-    </form>
+    <div class="filter-toggle-row">
+      <button type="button" class="button1 btn-filter-toggle" onclick="toggleFilter()">
+        🔽 Filtros
+      </button>
+      {% if is_filtered %}
+        <a href="/gform/{{ cname }}?option=clearfilter" class="button1 btn-cancel" style="font-size:.78rem;">✕ Limpar filtro</a>
+      {% endif %}
+    </div>
+
+    <div class="filter-panel" id="filter-panel" {% if not is_filtered %}style="display:none;"{% endif %}>
+      <form action="/gform/{{ cname }}?option=filter" method="post">
+        <div class="filter-grid">
+
+          <div class="filter-field">
+            <label class="filter-label">{{ des[0] }}</label>
+            <div style="display:flex;gap:6px;align-items:center;">
+              <input class="form-input filter-input" type="text"
+                     id="jump-id" name="jump_id" placeholder="ex: 42"
+                     style="max-width:100%;"/>
+            </div>
+          </div>
+
+          {% for key in att[1:] %}
+          <div class="filter-field">
+            <label class="filter-label">{{ des[loop.index] }}</label>
+            {% if key == '_certificate_type' %}
+              <select class="form-input filter-input" name="f_{{ key }}">
+                <option value="">-- todos --</option>
+                {% for opt in ['completion','advanced','specialization','professional'] %}
+                  <option value="{{ opt }}" {% if cur_filter.get(key,'') == opt %}selected{% endif %}>{{ opt }}</option>
+                {% endfor %}
+              </select>
+            {% elif key == '_payment_method' %}
+              <select class="form-input filter-input" name="f_{{ key }}">
+                <option value="">-- todos --</option>
+                {% for opt in ['Credit Card','PayPal','Bank Transfer','Debit Card'] %}
+                  <option value="{{ opt }}" {% if cur_filter.get(key,'') == opt %}selected{% endif %}>{{ opt }}</option>
+                {% endfor %}
+              </select>
+            {% elif key == '_course_category' %}
+              <select class="form-input filter-input" name="f_{{ key }}">
+                <option value="">-- todas --</option>
+                {% for opt in ['Data Science & AI','Technology & IT','Business & Management','Finance & Accounting','Design & Creative','Marketing & Sales','Professional Development'] %}
+                  <option value="{{ opt }}" {% if cur_filter.get(key,'') == opt %}selected{% endif %}>{{ opt }}</option>
+                {% endfor %}
+              </select>
+            {% elif key == '_certificate_language' %}
+              <select class="form-input filter-input" name="f_{{ key }}">
+                <option value="">-- todos --</option>
+                {% for opt in ['English','Spanish','Portuguese','French','German','Italian'] %}
+                  <option value="{{ opt }}" {% if cur_filter.get(key,'') == opt %}selected{% endif %}>{{ opt }}</option>
+                {% endfor %}
+              </select>
+            {% else %}
+              <input class="form-input filter-input" type="text" name="f_{{ key }}"
+                     placeholder="Filtrar..." value="{{ cur_filter.get(key, '') }}"/>
+            {% endif %}
+          </div>
+          {% endfor %}
+        </div>
+        <div style="margin-top:.85rem;display:flex;gap:8px;align-items:center;">
+          <button type="button" class="button1 btn-search" onclick="jumpToId()">Go to ID</button>
+          <button type="submit" class="button1 btn-save">🔍 Aplicar Filtro</button>
+          <a href="/gform/{{ cname }}?option=clearfilter" class="button1 btn-cancel">✕ Limpar</a>
+        </div>
+      </form>
+    </div>
 
     <div class="btn-row">
       <button type="button" {{ butshow }} class="button1 btn-edit"
@@ -49,58 +115,39 @@
           <td>
             {% set val = obj[key] %}
             {% if loop.index == 1 %}
-              {# Primary key - always readonly #}
-              <input class="form-input" type="text" readonly
-                     name="{{ key }}" value="{{ val }}"/>
-
+              <input class="form-input" type="text" readonly name="{{ key }}" value="{{ val }}"/>
             {% elif 'date' in key %}
-              {# Date fields - date picker #}
-              <input class="form-input" type="date" {{ butedit }}
-                     name="{{ key }}" value="{{ val }}"/>
-
+              <input class="form-input" type="date" {{ butedit }} name="{{ key }}" value="{{ val }}"/>
             {% elif 'fee' in key %}
-              {# Fee - number with decimals #}
-              <input class="form-input" type="number" {{ butedit }}
-                     name="{{ key }}" value="{{ val }}"
-                     step="0.01" min="0"/>
-
+              <input class="form-input" type="number" {{ butedit }} name="{{ key }}" value="{{ val }}" step="0.01" min="0"/>
             {% elif 'age' in key %}
-              {# Age - integer number #}
-              <input class="form-input" type="number" {{ butedit }}
-                     name="{{ key }}" value="{{ val }}"
-                     min="1" max="120"/>
-
+              <input class="form-input" type="number" {{ butedit }} name="{{ key }}" value="{{ val }}" min="1" max="120"/>
             {% elif key == '_certificate_type' %}
-              <select class="form-select form-input" name="{{ key }}" {{ butedit }}>
+              <select class="form-input form-select" name="{{ key }}" {{ butedit }}>
                 {% for opt in ['completion','advanced','specialization','professional'] %}
                   <option value="{{ opt }}" {% if val == opt %}selected{% endif %}>{{ opt }}</option>
                 {% endfor %}
               </select>
-
             {% elif key == '_payment_method' %}
-              <select class="form-select form-input" name="{{ key }}" {{ butedit }}>
+              <select class="form-input form-select" name="{{ key }}" {{ butedit }}>
                 {% for opt in ['Credit Card','PayPal','Bank Transfer','Debit Card'] %}
                   <option value="{{ opt }}" {% if val == opt %}selected{% endif %}>{{ opt }}</option>
                 {% endfor %}
               </select>
-
             {% elif key == '_course_category' %}
-              <select class="form-select form-input" name="{{ key }}" {{ butedit }}>
+              <select class="form-input form-select" name="{{ key }}" {{ butedit }}>
                 {% for opt in ['Data Science & AI','Technology & IT','Business & Management','Finance & Accounting','Design & Creative','Marketing & Sales','Professional Development'] %}
                   <option value="{{ opt }}" {% if val == opt %}selected{% endif %}>{{ opt }}</option>
                 {% endfor %}
               </select>
-
             {% elif key == '_certificate_language' %}
-              <select class="form-select form-input" name="{{ key }}" {{ butedit }}>
+              <select class="form-input form-select" name="{{ key }}" {{ butedit }}>
                 {% for opt in ['English','Spanish','Portuguese','French','German','Italian'] %}
                   <option value="{{ opt }}" {% if val == opt %}selected{% endif %}>{{ opt }}</option>
                 {% endfor %}
               </select>
-
             {% else %}
-              <input class="form-input" type="text" {{ butedit }}
-                     name="{{ key }}" value="{{ val }}"/>
+              <input class="form-input" type="text" {{ butedit }} name="{{ key }}" value="{{ val }}"/>
             {% endif %}
           </td>
         </tr>
@@ -109,16 +156,41 @@
     </form>
 
     <div class="nav-row">
-      <button type="button" {{ butshow }} class="button1 btn-nav"
+      <button type="button" {{ butshow }} class="button1 btn-nav" id="btn-first"
               onclick="window.location.href='/gform/{{ cname }}?option=first'">⏮ First</button>
-      <button type="button" {{ butshow }} class="button1 btn-nav"
+      <button type="button" {{ butshow }} class="button1 btn-nav" id="btn-prev"
               onclick="window.location.href='/gform/{{ cname }}?option=previous'">◀ Previous</button>
-      <button type="button" {{ butshow }} class="button1 btn-nav"
+      <button type="button" {{ butshow }} class="button1 btn-nav" id="btn-next"
               onclick="window.location.href='/gform/{{ cname }}?option=next'">Next ▶</button>
-      <button type="button" {{ butshow }} class="button1 btn-nav"
+      <button type="button" {{ butshow }} class="button1 btn-nav" id="btn-last"
               onclick="window.location.href='/gform/{{ cname }}?option=last'">Last ⏭</button>
     </div>
-
   </div>
 </div>
+
+<script>
+function toggleFilter() {
+  var p = document.getElementById('filter-panel');
+  var open = p.style.display !== 'none';
+  p.style.display = open ? 'none' : 'block';
+  document.querySelector('.btn-filter-toggle').textContent = open ? '🔽 Filtros' : '🔼 Fechar';
+}
+
+function jumpToId() {
+  var id = document.getElementById('jump-id').value.trim();
+  if (id) window.location.href = '/gform/{{ cname }}?option=goto&search_id=' + id;
+}
+
+var flash = document.getElementById('flash-msg');
+if (flash) setTimeout(function(){ flash.style.transition='opacity .4s'; flash.style.opacity='0'; setTimeout(function(){ flash.remove(); }, 400); }, 3500);
+
+document.addEventListener('keydown', function(e) {
+  var editing = document.querySelector('input:not([disabled]):not([readonly]):focus, select:not([disabled]):focus');
+  if (editing) return;
+  if (e.key === 'ArrowLeft')  { var b = document.getElementById('btn-prev');  if(b) b.click(); }
+  if (e.key === 'ArrowRight') { var b = document.getElementById('btn-next');  if(b) b.click(); }
+  if (e.key === 'Home')       { var b = document.getElementById('btn-first'); if(b) b.click(); }
+  if (e.key === 'End')        { var b = document.getElementById('btn-last');  if(b) b.click(); }
+});
+</script>
 {% endblock %}

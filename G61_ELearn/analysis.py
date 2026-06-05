@@ -45,6 +45,7 @@ def get_analysis_data(db_path):
     fig1.update_coloraxes(showscale=False)
     _dark_layout(fig1, 'Top 10 Platforms by Revenue')
 
+    # Chart 2 — Tipos de certificado
     td = df_cert['certificate_type'].value_counts().reset_index()
     td.columns = ['Type','Count']
     fig2 = px.pie(td, names='Type', values='Count',
