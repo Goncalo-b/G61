@@ -2,6 +2,7 @@
 @author: Grupo 61 - FEUP PC II 2025/2026
 objective: class Course
 """
+from collections import Counter
 from classes.gclass import Gclass
 
 class Course(Gclass):
@@ -52,6 +53,27 @@ class Course(Gclass):
     def platform_id(self): return self._platform_id
     @platform_id.setter
     def platform_id(self, v): self._platform_id = int(float(v))
+
+
+    @classmethod
+    def distribution_by_category(cls):
+        counts = Counter(c.course_category for c in cls.obj.values())
+        return sorted(counts.items(), key=lambda x: x[1], reverse=True)
+
+    @classmethod
+    def courses_per_platform(cls, top_n=10):
+        counts = Counter(c.platform_id for c in cls.obj.values())
+        return counts.most_common(top_n)
+
+    @classmethod
+    def courses_added_by_year(cls):
+        counts = Counter()
+        for c in cls.obj.values():
+            if c.online_date and c.online_date != 'None':
+                year = str(c.online_date)[:4]
+                if year.isdigit():
+                    counts[year] += 1
+        return sorted(counts.items())
 
     def __str__(self):
         return f'Id:{self._id}, Name:{self._course_name}, Category:{self._course_category}'
