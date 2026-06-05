@@ -3,6 +3,7 @@
 objective: class Trans
 """
 import datetime
+from collections import defaultdict, Counter
 from classes.gclass import Gclass
 
 class Trans(Gclass):
@@ -67,6 +68,78 @@ class Trans(Gclass):
     def payment_method(self): return self._payment_method
     @payment_method.setter
     def payment_method(self, v): self._payment_method = str(v)
+
+
+    @classmethod
+    def total_revenue(cls):
+        """Receita total de todas as transações."""
+        return round(sum(t._certificate_fee for t in cls.obj.values()), 2)
+
+    @classmethod
+    def average_fee(cls):
+        """Fee média por transação."""
+        if not cls.obj: return 0.0
+        return round(cls.total_revenue() / len(cls.obj), 2)
+
+    @classmethod
+    def max_fee(cls):
+        """Fee máxima registada."""
+        if not cls.obj: return 0.0
+        return round(max(t._certificate_fee for t in cls.obj.values()), 2)
+
+    @classmethod
+    def min_fee(cls):
+        """Fee mínima registada."""
+        if not cls.obj: return 0.0
+        return round(min(t._certificate_fee for t in cls.obj.values()), 2)
+
+    @classmethod
+    def revenue_by_payment_method(cls):
+        """Receita e nº de transações por método de pagamento."""
+        totals = defaultdict(float)
+        counts = defaultdict(int)
+        for t in cls.obj.values():
+            totals[t._payment_method] += t._certificate_fee
+            counts[t._payment_method] += 1
+        result = []
+        for method in totals:
+            result.append({
+                'method': method,
+                'revenue': round(totals[method], 2),
+                'count': counts[method],
+                'avg': round(totals[method] / counts[method], 2)
+            })
+        return sorted(result, key=lambda x: x['revenue'], reverse=True)
+
+    @classmethod
+    def revenue_by_month(cls):
+        """Receita total por mês (YYYY-MM)."""
+        totals = defaultdict(float)
+        for t in cls.obj.values():
+            month = str(t._issue_date)[:7]
+            totals[month] += t._certificate_fee
+        return [(m, round(v, 2)) for m, v in sorted(totals.items())]
+
+    @classmethod
+    def revenue_by_year(cls):
+        """Receita total por ano."""
+        totals = defaultdict(float)
+        counts = defaultdict(int)
+        for t in cls.obj.values():
+            year = str(t._issue_date)[:4]
+            totals[year] += t._certificate_fee
+            counts[year] += 1
+        result = []
+        for year in sorted(totals):
+            result.append({'year': year, 'revenue': round(totals[year], 2),
+                           'count': counts[year]})
+        return result
+
+    @classmethod
+    def transactions_per_year(cls):
+        """Número de transações por ano."""
+        counts = Counter(str(t._issue_date)[:4] for t in cls.obj.values())
+        return sorted(counts.items())
 
     def __str__(self):
         return f'Id:{self._id}, Date:{self._issue_date}, Fee:{self._certificate_fee:.2f}'
