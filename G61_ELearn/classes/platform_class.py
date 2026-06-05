@@ -39,7 +39,6 @@ class Platform(Gclass):
 
     @classmethod
     def revenue_per_platform(cls, trans_obj, top_n=10):
-        """Receita total gerada por cada plataforma (top N)."""
         totals = defaultdict(float)
         for t in trans_obj.values():
             totals[t._platform_id] += t._certificate_fee
@@ -52,7 +51,6 @@ class Platform(Gclass):
 
     @classmethod
     def transactions_per_platform(cls, trans_obj, top_n=10):
-        """Número de transações por plataforma (top N)."""
         counts = Counter(t._platform_id for t in trans_obj.values())
         ranked = counts.most_common(top_n)
         result = []
@@ -63,13 +61,11 @@ class Platform(Gclass):
 
     @classmethod
     def platforms_per_country(cls):
-        """Número de plataformas por país."""
         counts = Counter(p.platform_country for p in cls.obj.values())
         return sorted(counts.items(), key=lambda x: x[1], reverse=True)
 
     @classmethod
     def avg_revenue_per_platform(cls, trans_obj):
-        """Receita média por plataforma."""
         totals = defaultdict(float)
         for t in trans_obj.values():
             totals[t._platform_id] += t._certificate_fee

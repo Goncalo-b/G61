@@ -72,30 +72,25 @@ class Trans(Gclass):
 
     @classmethod
     def total_revenue(cls):
-        """Receita total de todas as transações."""
         return round(sum(t._certificate_fee for t in cls.obj.values()), 2)
 
     @classmethod
     def average_fee(cls):
-        """Fee média por transação."""
         if not cls.obj: return 0.0
         return round(cls.total_revenue() / len(cls.obj), 2)
 
     @classmethod
     def max_fee(cls):
-        """Fee máxima registada."""
         if not cls.obj: return 0.0
         return round(max(t._certificate_fee for t in cls.obj.values()), 2)
 
     @classmethod
     def min_fee(cls):
-        """Fee mínima registada."""
         if not cls.obj: return 0.0
         return round(min(t._certificate_fee for t in cls.obj.values()), 2)
 
     @classmethod
     def revenue_by_payment_method(cls):
-        """Receita e nº de transações por método de pagamento."""
         totals = defaultdict(float)
         counts = defaultdict(int)
         for t in cls.obj.values():
@@ -113,7 +108,6 @@ class Trans(Gclass):
 
     @classmethod
     def revenue_by_month(cls):
-        """Receita total por mês (YYYY-MM)."""
         totals = defaultdict(float)
         for t in cls.obj.values():
             month = str(t._issue_date)[:7]
@@ -122,7 +116,6 @@ class Trans(Gclass):
 
     @classmethod
     def revenue_by_year(cls):
-        """Receita total por ano."""
         totals = defaultdict(float)
         counts = defaultdict(int)
         for t in cls.obj.values():
@@ -137,7 +130,6 @@ class Trans(Gclass):
 
     @classmethod
     def transactions_per_year(cls):
-        """Número de transações por ano."""
         counts = Counter(str(t._issue_date)[:4] for t in cls.obj.values())
         return sorted(counts.items())
 
