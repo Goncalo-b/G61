@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+{% block head %}
+{% endblock %}
+
+{% block content %}
+<div class="page-wide">
+  <div class="page-header">
+    <h2 class="page-title">📊 Data Analysis</h2>
+    <a href="/" class="button1 btn-exit">← Voltar</a>
+  </div>
+
+
+  <div class="da-controls card">
+    <form method="post" action="/data_analysis" class="da-form">
+      <div class="da-form-row">
+        <div class="da-field">
+          <label class="da-label">Tipo de Análise</label>
+          <select name="analysis_type" class="form-input da-select" id="da-type-select" onchange="this.form.submit()">
+            {% for opt in analysis_options %}
+              <option value="{{ opt.value }}" {% if opt.value == selected_type %}selected{% endif %}>
+                {{ opt.label }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="da-field da-field-sm" id="da-topn-wrap">
+          <label class="da-label">Top N</label>
+          <select name="top_n" class="form-input da-select" onchange="this.form.submit()">
+            {% for n in top_n_options %}
+              <option value="{{ n }}" {% if n == selected_n %}selected{% endif %}>Top {{ n }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+      </div>
+    </form>
+  </div>
+
+  {% if stats_html %}
+
+  <div class="da-stats-wrap card">
+    <h3 class="da-chart-title">Estatísticas Gerais</h3>
+    {{ stats_html | safe }}
+  </div>
+  {% endif %}
+
+  {% if chart_html %}
+
+  <div class="da-chart-wrap card">
+    <h3 class="da-chart-title" style="margin:0 0 1rem 0;">{{ chart_title }}</h3>
+    {{ chart_html | safe }}
+  </div>
+
+
+  <div class="da-table-wrap card">
+    <h3 class="da-chart-title">📋 Dados — {{ chart_title }}</h3>
+    {{ table_html | safe }}
+  </div>
+  {% endif %}
+  <br>
+</div>
+
+<script>
+(function() {
+  var sel = document.getElementById('da-type-select');
+  var wrap = document.getElementById('da-topn-wrap');
+  function toggle() {
+    wrap.style.display = sel.value === 'statistics' ? 'none' : '';
+  }
+  sel.addEventListener('change', toggle);
+  toggle();
+})();
+</script>
+{% endblock %}

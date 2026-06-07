@@ -1,39 +1,144 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="hero">
-  <h1>E-Learning Certificates</h1>
-  <p>Grupo 61 &nbsp;·&nbsp; FEUP PC II 2025/2026</p>
 
-  {% if ulogin %}
-    <div class="kpi-grid">
-      <a class="kpi-box" href="/gform/Platform">
-        <div class="num">{{ stats.platforms }}</div>
-        <div class="lbl">Platforms</div>
-      </a>
-      <a class="kpi-box" href="/gform/Certificate">
-        <div class="num">{{ stats.certificates }}</div>
-        <div class="lbl">Certificates</div>
-      </a>
-      <a class="kpi-box" href="/gform/Course">
-        <div class="num">{{ stats.courses }}</div>
-        <div class="lbl">Courses</div>
-      </a>
-      <a class="kpi-box" href="/gform/Person">
-        <div class="num">{{ stats.persons }}</div>
-        <div class="lbl">Persons</div>
-      </a>
-      <a class="kpi-box" href="/gform/Trans">
-        <div class="num">{{ stats.transactions }}</div>
-        <div class="lbl">Transactions</div>
-      </a>
+{% if not ulogin %}
+
+<div class="landing-hero">
+  <div class="landing-deco landing-deco-1"></div>
+  <div class="landing-deco landing-deco-2"></div>
+  <div class="landing-content">
+    <div class="landing-icon">🎓</div>
+    <h1 class="landing-title">E-Learning Certificates</h1>
+    <p class="landing-sub">Plataforma de gestão e análise de certificados e-learning<br>
+      <span class="landing-badge">Grupo 61 &nbsp;·&nbsp; FEUP PC II 2025/2026</span>
+    </p>
+    <a href="/login" class="btn-landing">Entrar na Plataforma →</a>
+    <div class="landing-stats">
+      <div class="lstat"><span class="lstat-n">{{ stats.platforms }}</span><span class="lstat-l">Plataformas</span></div>
+      <div class="lstat-sep"></div>
+      <div class="lstat"><span class="lstat-n">{{ stats.students }}</span><span class="lstat-l">Estudantes</span></div>
+      <div class="lstat-sep"></div>
+      <div class="lstat"><span class="lstat-n">{{ stats.transactions }}</span><span class="lstat-l">Transações</span></div>
+      <div class="lstat-sep"></div>
+      <div class="lstat"><span class="lstat-n">{{ stats.certificates }}</span><span class="lstat-l">Certificados</span></div>
     </div>
-    <a href="/analysis" class="button1 btn-save" style="font-size:.9rem; padding:10px 28px;">
-      📊 Ver Análise de Dados
-    </a>
-  {% else %}
-    <a href="/login" class="button1 btn-save" style="font-size:.9rem; padding:10px 32px;">
-      Entrar
-    </a>
-  {% endif %}
+  </div>
 </div>
+
+{% elif role == 'admin' %}
+
+<div class="dash-hero">
+  <div class="dash-welcome">
+    <span class="dash-icon">🛡️</span>
+    <div>
+      <h2 class="dash-title">Bem-vindo, <strong>{{ ulogin }}</strong></h2>
+      <p class="dash-sub">Painel de administração · Acesso completo</p>
+    </div>
+  </div>
+</div>
+<div class="dash-body">
+  <div class="kpi-grid">
+    <a class="kpi-box" href="/gform/Platform">
+      <div class="num">{{ stats.platforms }}</div><div class="lbl">Platforms</div>
+    </a>
+    <a class="kpi-box" href="/gform/Certificate">
+      <div class="num">{{ stats.certificates }}</div><div class="lbl">Certificates</div>
+    </a>
+    <a class="kpi-box" href="/gform/Course">
+      <div class="num">{{ stats.courses }}</div><div class="lbl">Courses</div>
+    </a>
+    <a class="kpi-box" href="/gform/Student">
+      <div class="num">{{ stats.students }}</div><div class="lbl">Students</div>
+    </a>
+    <a class="kpi-box" href="/gform/Trans">
+      <div class="num">{{ stats.transactions }}</div><div class="lbl">Transactions</div>
+    </a>
+  </div>
+  <div class="dash-actions">
+    <a href="/data_analysis" class="dash-action-btn">
+      <span class="dab-icon">📊</span>
+      <span class="dab-text">Data Analysis</span>
+      <span class="dab-desc">Estatísticas e gráficos interativos</span>
+    </a>
+    <a href="/history" class="dash-action-btn">
+      <span class="dab-icon">📋</span>
+      <span class="dab-text">Histórico</span>
+      <span class="dab-desc">Histórico de transações por estudante</span>
+    </a>
+    <a href="/enroll" class="dash-action-btn">
+      <span class="dab-icon">➕</span>
+      <span class="dab-text">Inscrever</span>
+      <span class="dab-desc">Registar nova inscrição</span>
+    </a>
+  </div>
+</div>
+
+{% else %}
+
+<div class="dash-hero dash-hero-student">
+  <div class="dash-welcome">
+    <span class="dash-icon">👤</span>
+    <div>
+      <h2 class="dash-title">Bem-vindo, <strong>{{ ulogin }}</strong></h2>
+      {% if student %}
+        <p class="dash-sub">{{ student._student_email }} &nbsp;·&nbsp; {{ student._student_country }}</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+<div class="dash-body">
+  {% if student_stats %}
+  <div class="stu-stats">
+    <a class="stu-stat stu-stat-link" href="/enroll">
+      <span class="stu-stat-icon">📚</span>
+      <span class="stu-stat-n">{{ student_stats.courses }}</span>
+      <span class="stu-stat-l">Cursos disponíveis</span>
+    </a>
+    <div class="stu-stat">
+      <span class="stu-stat-icon">🏫</span>
+      <span class="stu-stat-n">{{ student_stats.platforms }}</span>
+      <span class="stu-stat-l">Plataformas</span>
+    </div>
+    <div class="stu-stat">
+      <span class="stu-stat-icon">🎯</span>
+      <span class="stu-stat-n">{{ student_stats.cert_types }}</span>
+      <span class="stu-stat-l">Tipos de certificado</span>
+    </div>
+    <a class="stu-stat stu-stat-link" href="/history">
+      <span class="stu-stat-icon">🏆</span>
+      <span class="stu-stat-n">{{ student_stats.my_certs }}</span>
+      <span class="stu-stat-l">Os meus certificados</span>
+    </a>
+  </div>
+  {% endif %}
+  <div class="dash-actions">
+    <a href="/history" class="dash-action-btn">
+      <span class="dab-icon">📋</span>
+      <span class="dab-text">Meu Histórico</span>
+      <span class="dab-desc">Ver cursos e certificados adquiridos</span>
+    </a>
+    <a href="/enroll" class="dash-action-btn">
+      <span class="dab-icon">🎓</span>
+      <span class="dab-text">Nova Inscrição</span>
+      <span class="dab-desc">Inscrever-me num curso ou certificado</span>
+    </a>
+  </div>
+</div>
+{% endif %}
+
+<style>
+.stu-stats { display:grid; grid-template-columns:repeat(4,1fr); gap:1rem; margin-bottom:1.5rem; }
+@media(max-width:680px){ .stu-stats { grid-template-columns:repeat(2,1fr); } }
+.stu-stat { background:var(--white); border:1px solid var(--border); border-radius:14px;
+            padding:1.3rem 1rem; text-align:center; box-shadow:var(--shadow);
+            display:flex; flex-direction:column; align-items:center; gap:.25rem;
+            text-decoration:none; transition:transform .12s, box-shadow .12s; }
+.stu-stat-link { cursor:pointer; }
+.stu-stat-link:hover { transform:translateY(-3px); box-shadow:var(--shadow-md); border-color:var(--blue-mid); }
+.stu-stat-icon { font-size:1.7rem; line-height:1; }
+.stu-stat-n { font-size:1.9rem; font-weight:800; color:var(--blue); line-height:1.1; }
+.stu-stat-l { font-size:.78rem; font-weight:600; color:var(--muted);
+              text-transform:uppercase; letter-spacing:.04em; }
+</style>
+
 {% endblock %}

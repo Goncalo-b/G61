@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="login-page">
+  <div class="login-card" style="max-width:440px;">
+    <div class="login-brand">
+      <span class="login-brand-icon">📝</span>
+      <h1 class="login-brand-title">Criar Conta</h1>
+      <p class="login-brand-sub">Registe-se na plataforma ELearn G61</p>
+    </div>
+    <div class="login-divider"></div>
+
+    <form action="/register" method="post">
+      <div class="login-group">
+        <label>Nome Completo <span style="color:#e55;">*</span></label>
+        <input type="text" name="student_name" autocomplete="name"
+               placeholder="Ex: Maria Silva" autofocus required />
+      </div>
+
+      <div class="login-group">
+        <label>Email <span style="color:#e55;">*</span></label>
+        <input type="email" name="student_email" autocomplete="email"
+               placeholder="Ex: maria.silva@email.com" required />
+      </div>
+
+      <div class="login-group">
+        <label>País</label>
+        <input type="text" name="student_country" autocomplete="country-name"
+               placeholder="Ex: Portugal" />
+      </div>
+
+      <div class="login-group">
+        <label>Idade</label>
+        <input type="number" name="student_age" min="1" max="120"
+               placeholder="Ex: 23" />
+      </div>
+
+      <div class="login-group">
+        <label>A sua futura password</label>
+        <div style="display:flex;align-items:center;gap:.7rem;">
+          <input type="text" value="{{ new_id }}" readonly
+                 style="background:var(--bg);color:var(--blue);font-weight:700;
+                        letter-spacing:.1em;cursor:default;flex:1;" />
+          <span style="font-size:.7rem;color:var(--muted);white-space:nowrap;">atribuído automaticamente</span>
+        </div>
+        <p style="font-size:.72rem;color:var(--muted);margin:.35rem 0 0;">
+          🔑 Após o registo, use o seu <strong>email</strong> e este <strong>número</strong> para entrar.
+        </p>
+      </div>
+
+      <button type="submit" class="login-btn">Criar Conta →</button>
+    </form>
+
+    {% if msg %}
+      {% if msg.startswith('err:') %}
+        <p class="login-error">⚠ {{ msg[4:] }}</p>
+      {% else %}
+        <p style="color:#2c9e4b;margin-top:.8rem;text-align:center;">✅ {{ msg }}</p>
+      {% endif %}
+    {% endif %}
+
+    <div class="login-hint" style="margin-top:1.2rem;">
+      <span class="hint-row">Já tem conta?
+        <a href="/login" style="color:var(--accent,#4f8ef7);font-weight:600;">Entrar →</a>
+      </span>
+    </div>
+  </div>
+</div>
+{% endblock %}

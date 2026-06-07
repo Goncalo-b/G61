@@ -1,0 +1,544 @@
+{% extends 'base.html' %}
+{% block head %}
+<style>
+
+.enroll-card { background:var(--white); border:1px solid var(--border); border-radius:12px;
+               padding:1.5rem; box-shadow:var(--shadow); margin-bottom:1rem; }
+.e-step { display:flex; gap:1rem; align-items:flex-start; }
+.e-num  { width:30px; height:30px; min-width:30px; border-radius:50%; background:var(--blue);
+          color:#fff; font-size:.78rem; font-weight:800; display:flex; align-items:center;
+          justify-content:center; margin-top:1px; flex-shrink:0; }
+.e-num.done { background:var(--green,#16a34a); }
+.e-body { flex:1; }
+.e-title { font-size:.88rem; font-weight:700; color:var(--text); margin-bottom:.65rem; }
+
+.stab-row { display:flex; border:1px solid var(--border); border-radius:8px; overflow:hidden; margin-bottom:.85rem; }
+.stab { flex:1; padding:.55rem .75rem; font-size:.79rem; font-weight:600; cursor:pointer;
+        background:#fff; color:var(--muted); border:none; font-family:'Inter',sans-serif;
+        transition:all .15s; line-height:1; }
+.stab.on { background:var(--blue); color:#fff; }
+
+.ac-rel  { position:relative; }
+.ac-inp  { width:100%; padding:9px 12px; border:1px solid var(--border); border-radius:8px;
+           font-family:'Inter',sans-serif; font-size:.875rem; outline:none;
+           transition:border-color .15s, box-shadow .15s; }
+.ac-inp:focus { border-color:var(--blue); box-shadow:0 0 0 3px rgba(51,74,148,.12); }
+.ac-drop { position:absolute; top:calc(100% + 3px); left:0; right:0; background:#fff;
+           border:1px solid var(--border); border-radius:8px; box-shadow:var(--shadow-md);
+           max-height:220px; overflow-y:auto; z-index:300; display:none; }
+.ac-it  { padding:8px 13px; cursor:pointer; font-size:.84rem; border-bottom:1px solid var(--bg); }
+.ac-it:last-child { border-bottom:none; }
+.ac-it:hover, .ac-it.on { background:var(--blue-light); }
+.ac-badge { display:inline-flex; align-items:center; gap:.5rem; background:var(--green-light);
+            border:1px solid #bbf7d0; border-radius:8px; padding:.4rem .9rem;
+            font-size:.83rem; font-weight:600; color:var(--green); margin-top:.5rem; }
+
+.ns-grid { display:grid; grid-template-columns:1fr 1fr; gap:.7rem; }
+@media(max-width:500px){ .ns-grid { grid-template-columns:1fr; } }
+
+.co-srch { width:100%; padding:9px 12px; border:1px solid var(--border); border-radius:8px;
+           font-family:'Inter',sans-serif; font-size:.875rem; outline:none;
+           margin-bottom:.45rem; transition:border-color .15s; box-sizing:border-box; }
+.co-srch:focus { border-color:var(--blue); }
+.co-list { border:1px solid var(--border); border-radius:8px; max-height:230px; overflow-y:auto; }
+.co-it   { padding:10px 14px; cursor:pointer; font-size:.875rem;
+           border-bottom:1px solid var(--bg); display:flex; align-items:center;
+           justify-content:space-between; gap:.5rem; transition:background .1s; }
+.co-it:last-child { border-bottom:none; }
+.co-it:hover   { background:var(--blue-light); }
+.co-it.on      { background:var(--blue-light); font-weight:600; color:var(--blue); }
+.co-it.hidden  { display:none; }
+.co-meta       { display:flex; align-items:center; gap:.5rem; flex-shrink:0; }
+.co-type-tag   { font-size:.7rem; font-weight:700; padding:.18rem .55rem; border-radius:99px;
+                 text-transform:uppercase; letter-spacing:.04em; }
+.co-type-completion   { background:#dbeafe; color:#1d4ed8; }
+.co-type-professional { background:#f3e8ff; color:#7e22ce; }
+.co-type-specialization{ background:#fef9c3; color:#92400e; }
+.co-type-advanced     { background:#fee2e2; color:#991b1b; }
+.co-fee  { font-size:.75rem; color:var(--muted); }
+.co-chk  { color:var(--blue); display:none; font-size:.95rem; }
+.co-it.on .co-chk { display:inline; }
+
+.cert-info { display:none; padding:.65rem 1rem; background:var(--blue-light);
+             border:1px solid #c7d2f8; border-radius:8px; font-size:.84rem;
+             align-items:center; gap:.6rem; flex-wrap:wrap; }
+.cert-info.show { display:flex; }
+
+.pf-srch { width:100%; padding:8px 12px; border:1px solid var(--border);
+           border-radius:8px 8px 0 0; font-family:'Inter',sans-serif; font-size:.84rem;
+           outline:none; border-bottom:none; transition:border-color .15s; box-sizing:border-box; }
+.pf-srch:focus { border-color:var(--blue); }
+.pf-sel  { border-radius:0 0 8px 8px !important; max-width:100% !important; }
+.pf-empty { font-size:.8rem; color:var(--muted); font-style:italic; padding:.4rem 0;
+             display:none; }
+
+.fee-display { display:flex; align-items:center; gap:.8rem; flex-wrap:wrap;
+               padding:.9rem 1.1rem; background:var(--bg); border:1px solid var(--border);
+               border-radius:10px; margin-bottom:.75rem; }
+.fee-base  { font-size:1.35rem; font-weight:800; color:var(--blue); }
+.fee-extra { font-size:.82rem; color:#d97706; font-weight:600; }
+.fee-total { font-size:1.15rem; font-weight:800; color:var(--text); }
+.fee-note  { font-size:.72rem; color:var(--muted); }
+
+.e-label { font-size:.7rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em;
+           color:var(--muted); display:block; margin-bottom:.38rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page" style="max-width:680px;">
+  <div class="page-header">
+    <h2 class="page-title">🎓 Nova Inscrição</h2>
+    <a href="/" class="button1 btn-exit">← Voltar</a>
+  </div>
+
+  {% if msg %}
+  <div class="flash-msg {{ 'flash-ok' if msg.startswith('ok:') else 'flash-err' }}" id="flash-msg">
+    {{ '✓' if msg.startswith('ok:') else '✕' }} {{ msg[3:] }}
+  </div>
+  {% endif %}
+
+  <form id="ef" method="post" action="/enroll">
+    <input type="hidden" name="enroll_mode" id="emode" value="existing"/>
+
+
+    {% if role == 'admin' %}
+    <div class="enroll-card">
+      <div class="e-step">
+        <div class="e-num" id="num-student">1</div>
+        <div class="e-body">
+          <div class="e-title">Estudante</div>
+          <div class="stab-row">
+            <button type="button" class="stab on" id="tb-ex" onclick="setMode('existing')">Existente</button>
+            <button type="button" class="stab"    id="tb-nw" onclick="setMode('new')">+ Novo Estudante</button>
+          </div>
+
+          <div id="pnl-ex">
+            <div class="ns-grid" style="margin-bottom:.5rem;">
+              <div>
+                <label class="e-label">ID do Estudante</label>
+                <input id="es-id-inp" class="ac-inp" type="number" min="1"
+                       autocomplete="off" placeholder="ex: 42"
+                       oninput="esIdType(this.value)"
+                       onkeydown="if(event.key==='Enter'){event.preventDefault();}"/>
+              </div>
+              <div class="ac-rel">
+                <label class="e-label">Nome</label>
+                <input id="es-txt" class="ac-inp" type="text" autocomplete="off"
+                       placeholder="Nome do estudante..."
+                       oninput="esType(this.value)" onkeydown="esKey(event)"/>
+                <div class="ac-drop" id="es-drop"></div>
+              </div>
+            </div>
+            <div id="es-badge"></div>
+            <input type="hidden" name="student_id" id="es-hid"/>
+          </div>
+
+          <div id="pnl-nw" style="display:none;">
+            <div class="ns-grid">
+              <div><label class="e-label">Nome *</label>
+                   <input type="text" name="new_name" class="form-input" placeholder="Nome completo"/></div>
+              <div><label class="e-label">Email *</label>
+                   <input type="email" name="new_email" class="form-input" placeholder="email@exemplo.com"/></div>
+              <div><label class="e-label">País</label>
+                   <input type="text" name="new_country" class="form-input" placeholder="Portugal"/></div>
+              <div><label class="e-label">Idade</label>
+                   <input type="number" name="new_age" class="form-input" placeholder="25" min="1" max="120"/></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% else %}
+
+    <div class="enroll-card">
+      <div class="e-step">
+        <div class="e-num done">✓</div>
+        <div class="e-body">
+          <div class="e-title">Estudante</div>
+          <div class="ac-badge">✓ {{ ulogin }}<span style="font-weight:400;margin-left:.3rem;">ID: {{ student_id }}</span></div>
+          <input type="hidden" name="student_id" value="{{ student_id }}"/>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+
+    <div class="enroll-card">
+      <div class="e-step">
+        <div class="e-num" id="num-course">{% if role=='admin' %}2{% else %}1{% endif %}</div>
+        <div class="e-body">
+          <div class="e-title">Curso</div>
+          <input type="text" class="co-srch" id="co-srch"
+                 placeholder="Pesquisar curso..." oninput="coFilter(this.value)" autocomplete="off"/>
+          <div class="co-list" id="co-list">
+            {% for c in unique_certs %}
+            {% if c.name and c.name != 'None' and c.type and c.type != 'None' and c.avg_fee %}
+            <div class="co-it"
+                 data-id="{{ c.id }}"
+                 data-fee="{{ c.avg_fee }}"
+                 data-type="{{ c.type }}"
+                 data-name="{{ c.name | e }}"
+                 onclick="pickCourse(this)">
+              <span>{{ c.name }}</span>
+              <span class="co-meta">
+                <span class="co-type-tag co-type-{{ c.type }}">{{ c.type }}</span>
+                <span class="co-fee">~€{{ '%.0f'|format(c.avg_fee) }}</span>
+                <span class="co-chk">✓</span>
+              </span>
+            </div>
+            {% endif %}
+            {% endfor %}
+          </div>
+          <input type="hidden" name="certificate_id" id="cert-id"/>
+        </div>
+      </div>
+    </div>
+
+
+    <div class="enroll-card" id="card-type" style="opacity:.45;pointer-events:none;">
+      <div class="e-step">
+        <div class="e-num" id="num-type">{% if role=='admin' %}3{% else %}2{% endif %}</div>
+        <div class="e-body">
+          <div class="e-title">Tipo de Certificado</div>
+          <div class="cert-info" id="cert-info">
+            <span id="ci-emoji">🎓</span>
+            <strong id="ci-name"></strong>
+            <span class="co-type-tag" id="ci-type-tag"></span>
+            <span style="font-size:.76rem;color:var(--muted);" id="ci-desc"></span>
+          </div>
+          <p id="type-placeholder" style="font-size:.82rem;color:var(--muted);margin:0;">
+            ← Selecione primeiro o curso
+          </p>
+        </div>
+      </div>
+    </div>
+
+
+    <div class="enroll-card" id="card-lang" style="opacity:.45;pointer-events:none;">
+      <div class="e-step">
+        <div class="e-num" id="num-lang">{% if role=='admin' %}4{% else %}3{% endif %}</div>
+        <div class="e-body">
+          <div class="e-title">Língua do Certificado</div>
+          <p id="lang-placeholder" style="font-size:.82rem;color:var(--muted);margin:0 0 .4rem;">
+            ← Selecione primeiro o curso
+          </p>
+          <div id="lang-controls" style="display:none;">
+            <select name="cert_language" id="lang-sel" class="form-input"
+                    style="max-width:100%;" required>
+              <option value="">-- Selecionar língua --</option>
+            </select>
+            <p style="font-size:.72rem;color:var(--muted);margin:.4rem 0 0;">
+              Apenas línguas disponíveis no histórico deste certificado.
+            </p>
+          </div>
+          <div id="lang-loading" style="display:none;font-size:.82rem;color:var(--muted);">A carregar línguas...</div>
+        </div>
+      </div>
+    </div>
+
+
+    <div class="enroll-card" id="card-platform" style="opacity:.45;pointer-events:none;">
+      <div class="e-step">
+        <div class="e-num" id="num-platform">{% if role=='admin' %}5{% else %}4{% endif %}</div>
+        <div class="e-body">
+          <div class="e-title">Plataforma</div>
+          <p id="plat-placeholder" style="font-size:.82rem;color:var(--muted);margin:0 0 .4rem;">
+            ← Selecione primeiro o curso
+          </p>
+          <div id="plat-controls" style="display:none;">
+            <input type="text" class="pf-srch" id="pf-srch"
+                   placeholder="Filtrar plataformas..." oninput="pfFilter(this.value)" autocomplete="off"/>
+            <select name="platform_id" id="pf-sel" class="form-input pf-sel" required>
+              <option value="">-- Selecionar plataforma --</option>
+            </select>
+            <p class="pf-empty" id="pf-empty">Nenhuma plataforma encontrada.</p>
+          </div>
+          <div id="plat-loading" style="display:none;font-size:.82rem;color:var(--muted);">A carregar plataformas...</div>
+        </div>
+      </div>
+    </div>
+
+
+    <div class="enroll-card" id="card-fee" style="opacity:.45;pointer-events:none;">
+      <div class="e-step">
+        <div class="e-num" id="num-fee">{% if role=='admin' %}6{% else %}5{% endif %}</div>
+        <div class="e-body">
+          <div class="e-title">Fee & Pagamento</div>
+
+          <div class="fee-display" id="fee-display">
+            <span class="fee-note" id="fee-idle">← Selecione o curso para ver a fee</span>
+            <span class="fee-base" id="fee-base" style="display:none;"></span>
+            <span class="fee-extra" id="fee-paypal" style="display:none;">+ €1,00 PayPal</span>
+            <span class="fee-total" id="fee-total" style="display:none;"></span>
+          </div>
+
+          <label class="e-label">Método de Pagamento</label>
+          <select name="payment_method" id="pay-method" class="form-input"
+                  style="max-width:100%;" required onchange="updateFee()">
+            {% for pm in payment_methods %}
+            <option value="{{ pm }}">{{ pm }}</option>
+            {% endfor %}
+          </select>
+          <p style="font-size:.72rem;color:#d97706;margin:.45rem 0 0;display:none;" id="paypal-note">
+            ⚠ Método PayPal inclui taxa adicional de €1,00.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:.6rem;align-items:center;">
+      <button type="submit" class="button1 btn-save"
+              style="font-size:.9rem;padding:11px 28px;"
+              onclick="return validateEnroll()">✓ Confirmar Inscrição</button>
+      <a href="/history" class="button1 btn-cancel">Cancelar</a>
+    </div>
+  </form>
+</div>
+
+<script>
+var BASE_FEE = 0;
+
+function setMode(m) {
+  var ex = m === 'existing';
+  document.getElementById('pnl-ex').style.display = ex ? '' : 'none';
+  document.getElementById('pnl-nw').style.display = ex ? 'none' : '';
+  document.getElementById('emode').value = m;
+  document.getElementById('tb-ex').classList.toggle('on', ex);
+  document.getElementById('tb-nw').classList.toggle('on', !ex);
+}
+
+var esDrop = document.getElementById('es-drop');
+var esTxt  = document.getElementById('es-txt');
+var esT;
+
+// --- Campo ID: preenche o nome automaticamente ---
+var esIdT;
+function esIdType(v) {
+  clearTimeout(esIdT);
+  var hid = document.getElementById('es-hid');
+  if (hid) hid.value = '';
+  var bd  = document.getElementById('es-badge');
+  if (bd)  bd.innerHTML = '';
+  esTxt.value = '';
+  esDrop.style.display = 'none';
+  if (!v.trim()) return;
+  esIdT = setTimeout(function() {
+    fetch('/api/student_by_id?id=' + encodeURIComponent(v.trim()))
+      .then(function(r){ return r.json(); })
+      .then(function(s) {
+        if (s && s.id) { esPick(s.id, s.name, s.email); }
+      });
+  }, 300);
+}
+
+// --- Campo Nome: autocomplete que preenche o ID ---
+function esType(v) {
+  clearTimeout(esT);
+  var hid = document.getElementById('es-hid');
+  if (hid) hid.value = '';
+  var bd  = document.getElementById('es-badge');
+  if (bd)  bd.innerHTML = '';
+  var idInp = document.getElementById('es-id-inp');
+  if (idInp) idInp.value = '';
+  if (!v.trim()) { esDrop.style.display='none'; return; }
+  esT = setTimeout(function(){ esFetch(v.trim()); }, 165);
+}
+function esFetch(q) {
+  fetch('/api/students?q=' + encodeURIComponent(q))
+    .then(function(r){ return r.json(); })
+    .then(function(data) {
+      if (!data.length) {
+        esDrop.innerHTML = '<div style="padding:10px 14px;font-size:.83rem;color:var(--muted);font-style:italic;">Sem resultados</div>';
+        esDrop.style.display='block'; return;
+      }
+      esDrop.innerHTML = data.map(function(s){
+        return '<div class="ac-it" onclick="esPick('+s.id+',\''+
+               s.name.replace(/\\/g,'\\\\').replace(/'/g,"\\'")+'\',' +
+               '\''+s.email.replace(/'/g,"\\'")+'\')">'+
+               '<span style="font-weight:600">'+s.name+'</span>'+
+               ' <span style="color:var(--muted);font-size:.73rem">ID: '+s.id+'</span>'+
+               '<div style="font-size:.73rem;color:var(--muted)">'+s.email+'</div></div>';
+      }).join('');
+      esDrop.style.display = 'block';
+    });
+}
+function esPick(id, name, email) {
+  document.getElementById('es-hid').value = id;
+  esTxt.value = name;
+  var idInp = document.getElementById('es-id-inp');
+  if (idInp) idInp.value = id;
+  esDrop.style.display = 'none';
+  var bd = document.getElementById('es-badge');
+  if (bd) bd.innerHTML =
+    '<div class="ac-badge" style="margin-top:.5rem;">✓ '+name+
+    '<span style="font-weight:400;color:var(--green)"> · ID '+id+'</span></div>';
+}
+function esKey(e) {
+  var its = esDrop.querySelectorAll('.ac-it');
+  var act = esDrop.querySelector('.ac-it.on');
+  var idx = act ? Array.from(its).indexOf(act) : -1;
+  if (e.key==='ArrowDown'){e.preventDefault();if(idx<its.length-1){if(act)act.classList.remove('on');its[idx+1].classList.add('on');}}
+  else if(e.key==='ArrowUp'){e.preventDefault();if(idx>0){act.classList.remove('on');its[idx-1].classList.add('on');}}
+  else if(e.key==='Enter'){e.preventDefault();var a=esDrop.querySelector('.ac-it.on');if(a)a.click();}
+  else if(e.key==='Escape') esDrop.style.display='none';
+}
+document.addEventListener('click', function(e){
+  if(!e.target.closest('.ac-rel')) esDrop.style.display='none';
+});
+
+function coFilter(q) {
+  var lo = q.toLowerCase().trim();
+  document.querySelectorAll('#co-list .co-it').forEach(function(it){
+    it.classList.toggle('hidden', !!lo && !it.dataset.name.toLowerCase().includes(lo));
+  });
+}
+
+var TYPE_EMOJI = { completion:'🎯', professional:'🏅', specialization:'⭐', advanced:'🚀' };
+var TYPE_DESC  = {
+  completion:    'Certificado de conclusão de curso',
+  professional:  'Certificado profissional reconhecido',
+  specialization:'Especialização numa área temática',
+  advanced:      'Formação avançada de alto nível'
+};
+
+function pickCourse(el) {
+  document.querySelectorAll('#co-list .co-it').forEach(function(i){ i.classList.remove('on'); });
+  el.classList.add('on');
+
+  var cid  = el.dataset.id;
+  var fee  = parseFloat(el.dataset.fee);
+  var type = el.dataset.type;
+  var name = el.dataset.name;
+
+  document.getElementById('cert-id').value = cid;
+  BASE_FEE = fee;
+
+
+  var cardType = document.getElementById('card-type');
+  cardType.style.opacity = '1';
+  cardType.style.pointerEvents = 'auto';
+  document.getElementById('type-placeholder').style.display = 'none';
+  var info = document.getElementById('cert-info');
+  info.className = 'cert-info show';
+  document.getElementById('ci-emoji').textContent = TYPE_EMOJI[type] || '🎓';
+  document.getElementById('ci-name').textContent  = name;
+  var tag = document.getElementById('ci-type-tag');
+  tag.textContent  = type;
+  tag.className    = 'co-type-tag co-type-' + type;
+  document.getElementById('ci-desc').textContent  = TYPE_DESC[type] || '';
+
+
+  var cardLang = document.getElementById('card-lang');
+  cardLang.style.opacity = '1';
+  cardLang.style.pointerEvents = 'auto';
+  document.getElementById('lang-placeholder').style.display = 'none';
+  document.getElementById('lang-controls').style.display = 'none';
+  document.getElementById('lang-loading').style.display = 'block';
+
+  fetch('/api/languages_for_cert?name=' + encodeURIComponent(name))
+    .then(function(r){ return r.json(); })
+    .then(function(langs) {
+      document.getElementById('lang-loading').style.display = 'none';
+      var lsel = document.getElementById('lang-sel');
+      lsel.innerHTML = '<option value="">-- Selecionar língua --</option>';
+      var LANG_FLAG = { English:'🇬🇧', Portuguese:'🇵🇹', Spanish:'🇪🇸',
+                        French:'🇫🇷', German:'🇩🇪', Italian:'🇮🇹' };
+      langs.forEach(function(l){
+        var o = document.createElement('option');
+        o.value = l;
+        o.text  = (LANG_FLAG[l] ? LANG_FLAG[l] + ' ' : '') + l;
+        lsel.appendChild(o);
+      });
+      document.getElementById('lang-controls').style.display = 'block';
+    });
+
+
+  var cardPlat = document.getElementById('card-platform');
+  cardPlat.style.opacity = '1';
+  cardPlat.style.pointerEvents = 'auto';
+  document.getElementById('plat-placeholder').style.display = 'none';
+  document.getElementById('plat-controls').style.display = 'none';
+  document.getElementById('plat-loading').style.display = 'block';
+
+  fetch('/api/platforms_for_course?name=' + encodeURIComponent(name))
+    .then(function(r){ return r.json(); })
+    .then(function(data) {
+      document.getElementById('plat-loading').style.display = 'none';
+      document.getElementById('pf-srch').value = '';
+      var sel = document.getElementById('pf-sel');
+      sel.innerHTML = '<option value="">-- Selecionar plataforma --</option>';
+      data.forEach(function(p){
+        var o = document.createElement('option');
+        o.value = p.id;
+        o.text  = p.name + ' — ' + p.country;
+        sel.appendChild(o);
+      });
+      document.getElementById('plat-controls').style.display = 'block';
+    });
+
+
+  var cardFee = document.getElementById('card-fee');
+  cardFee.style.opacity = '1';
+  cardFee.style.pointerEvents = 'auto';
+  updateFee();
+}
+
+function pfFilter(q) {
+  var sel = document.getElementById('pf-sel');
+  var lo  = q.toLowerCase().trim();
+  var vis = 0;
+  Array.from(sel.options).forEach(function(o){
+    if (!o.value) return;
+    var show = !lo || o.text.toLowerCase().includes(lo);
+    o.style.display = show ? '' : 'none';
+    if (show) vis++;
+  });
+  sel.size = lo ? Math.min(7, vis + 1) : 0;
+  document.getElementById('pf-empty').style.display = (lo && vis === 0) ? 'block' : 'none';
+}
+document.getElementById('pf-sel').addEventListener('change', function(){
+  document.getElementById('pf-srch').value = '';
+  this.size = 0;
+  document.getElementById('pf-empty').style.display = 'none';
+});
+
+function updateFee() {
+  if (!BASE_FEE) return;
+  var pm      = document.getElementById('pay-method').value;
+  var isPayPal = pm === 'PayPal';
+  var total   = BASE_FEE + (isPayPal ? 1.0 : 0.0);
+
+  document.getElementById('fee-idle').style.display    = 'none';
+  document.getElementById('fee-base').style.display    = 'inline';
+  document.getElementById('fee-base').textContent      = '€' + BASE_FEE.toFixed(2);
+  document.getElementById('fee-paypal').style.display  = isPayPal ? 'inline' : 'none';
+  document.getElementById('fee-total').style.display   = isPayPal ? 'inline' : 'none';
+  document.getElementById('fee-total').textContent     = '= €' + total.toFixed(2);
+  document.getElementById('paypal-note').style.display = isPayPal ? 'block' : 'none';
+}
+
+function validateEnroll() {
+  {% if role == 'admin' %}
+  if (document.getElementById('emode').value === 'existing') {
+    var hid = document.getElementById('es-hid');
+    if (!hid || !hid.value) { alert('Seleciona ou pesquisa um estudante existente.'); return false; }
+  }
+  {% endif %}
+  if (!document.getElementById('cert-id').value) {
+    alert('Seleciona um curso da lista.'); return false;
+  }
+  var lang = document.getElementById('lang-sel');
+  if (!lang || !lang.value) { alert('Seleciona a língua do certificado.'); return false; }
+  var sel = document.getElementById('pf-sel');
+  if (!sel.value) { alert('Seleciona uma plataforma.'); return false; }
+  return true;
+}
+
+var flash = document.getElementById('flash-msg');
+if (flash) setTimeout(function(){
+  flash.style.transition='opacity .4s'; flash.style.opacity='0';
+  setTimeout(function(){ flash.remove(); }, 400);
+}, 5500);
+</script>
+{% endblock %}

@@ -1,17 +1,19 @@
 {% extends 'base.html' %}
 {% block content %}
 <div class="page">
-
   <div class="page-header">
     <h2 class="page-title">{{ header }}</h2>
-    <div style="display:flex;align-items:center;gap:.6rem;">
-      {% if is_filtered %}<span class="filter-badge">🔍 Filtered</span>{% endif %}
+    <div style="display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;">
+      {% if is_filtered %}<span class="filter-badge">🔍 Filtrado</span>{% endif %}
       {% if total > 0 %}
         <span class="record-counter">
-          {{ recnum }} / {{ total }}{% if is_filtered %} <span style="color:var(--muted);font-weight:400;">of {{ total_unfiltered }}</span>{% endif %}
+          {{ recnum }} / {{ total }}
+          {% if is_filtered %}<span style="color:var(--muted);font-weight:400"> de {{ total_unfiltered }}</span>{% endif %}
         </span>
       {% elif is_filtered %}
-        <span class="record-counter" style="color:var(--red);">Sem resultados</span>
+        <span class="record-counter" style="color:var(--red)">Sem resultados</span>
+      {% else %}
+        <span class="record-counter">{{ total_unfiltered }} registos</span>
       {% endif %}
     </div>
   </div>
@@ -24,31 +26,46 @@
     </div>
     {% endif %}
 
+
+    <div class="btn-row">
+      <button type="button" {{ butshow }} class="button1 btn-edit"
+              onclick="nav('edit')">✏ Edit</button>
+      <button type="button" {{ butshow }} class="button1 btn-delete"
+              onclick="if(confirm('Eliminar este registo?')) nav('delete')">🗑 Delete</button>
+      <button type="button" {{ butshow }} class="button1 btn-insert"
+              onclick="nav('insert')">＋ Insert</button>
+      <button type="submit" form="gform" {{ butedit }} class="button1 btn-save">💾 Save</button>
+      <button type="button" {{ butedit }} class="button1 btn-cancel"
+              onclick="nav('cancel')">✕ Cancel</button>
+
+
+      <div class="btn-spacer"></div>
+      <button type="button" {{ butshow }} class="button1 btn-exit"
+              onclick="nav('exit')">← Exit</button>
+    </div>
+
+
     <div class="filter-toggle-row">
       <button type="button" class="button1 btn-filter-toggle" onclick="toggleFilter()">
-        🔽 Filtros
+        <span id="filter-toggle-icon">🔽</span> Filtros
       </button>
       {% if is_filtered %}
-        <a href="/gform/{{ cname }}?option=clearfilter" class="button1 btn-cancel" style="font-size:.78rem;">✕ Limpar filtro</a>
+        <a href="/gform/{{ cname }}?option=clearfilter" class="button1 btn-cancel"
+           style="font-size:.78rem;">✕ Limpar filtro</a>
+        <span style="font-size:.75rem;color:var(--muted);">
+          ({{ total }} de {{ total_unfiltered }} registos)
+        </span>
       {% endif %}
     </div>
 
-    <div class="filter-panel" id="filter-panel" {% if not is_filtered %}style="display:none;"{% endif %}>
+
+    <div class="filter-panel" id="filter-panel"
+         {% if not is_filtered %}style="display:none;"{% endif %}>
       <form action="/gform/{{ cname }}?option=filter" method="post">
         <div class="filter-grid">
-
+          {% for key in att %}
           <div class="filter-field">
-            <label class="filter-label">{{ des[0] }}</label>
-            <div style="display:flex;gap:6px;align-items:center;">
-              <input class="form-input filter-input" type="text"
-                     id="jump-id" name="jump_id" placeholder="ex: 42"
-                     style="max-width:100%;"/>
-            </div>
-          </div>
-
-          {% for key in att[1:] %}
-          <div class="filter-field">
-            <label class="filter-label">{{ des[loop.index] }}</label>
+            <label class="filter-label">{{ des[loop.index0] }}</label>
             {% if key == '_certificate_type' %}
               <select class="form-input filter-input" name="f_{{ key }}">
                 <option value="">-- todos --</option>
@@ -84,44 +101,38 @@
           </div>
           {% endfor %}
         </div>
-        <div style="margin-top:.85rem;display:flex;gap:8px;align-items:center;">
-          <button type="button" class="button1 btn-search" onclick="jumpToId()">Go to ID</button>
+        <div style="margin-top:.85rem;display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
           <button type="submit" class="button1 btn-save">🔍 Aplicar Filtro</button>
           <a href="/gform/{{ cname }}?option=clearfilter" class="button1 btn-cancel">✕ Limpar</a>
+          <span style="font-size:.73rem;color:var(--muted);margin-left:.5rem;">
+            Dica: preenche vários campos para filtrar em simultâneo
+          </span>
         </div>
       </form>
     </div>
 
-    <div class="btn-row">
-      <button type="button" {{ butshow }} class="button1 btn-edit"
-              onclick="window.location.href='/gform/{{ cname }}?option=edit'">✏ Edit</button>
-      <button type="button" {{ butshow }} class="button1 btn-delete"
-              onclick="if(confirm('Eliminar este registo?')) window.location.href='/gform/{{ cname }}?option=delete'">🗑 Delete</button>
-      <button type="button" {{ butshow }} class="button1 btn-insert"
-              onclick="window.location.href='/gform/{{ cname }}?option=insert'">＋ Insert</button>
-      <button type="submit" form="gform" {{ butedit }} class="button1 btn-save">💾 Save</button>
-      <button type="button" {{ butedit }} class="button1 btn-cancel"
-              onclick="window.location.href='/gform/{{ cname }}?option=cancel'">✕ Cancel</button>
-      <div class="btn-spacer"></div>
-      <button type="button" {{ butshow }} class="button1 btn-exit"
-              onclick="window.location.href='/gform/{{ cname }}?option=exit'">← Exit</button>
-    </div>
 
     <form id="gform" action="/gform/{{ cname }}?option=save" method="post">
-      <table class="form-table">
+
+      <input type="hidden" name="prev_option"
+             value="{{ 'insert' if current_option == 'insert' else 'edit' }}"/>
+
+      <div class="gform-fields">
         {% for key in att %}
-        <tr>
-          <td class="label-col">{{ des[loop.index0] }}</td>
-          <td>
-            {% set val = obj[key] %}
+        <div class="gform-row">
+          <label class="gform-label">{{ des[loop.index0] }}</label>
+          <div class="gform-val">
+            {% set val = obj[key] if obj is mapping else (obj | attr(key)) %}
             {% if loop.index == 1 %}
               <input class="form-input" type="text" readonly name="{{ key }}" value="{{ val }}"/>
-            {% elif 'date' in key %}
+            {% elif key.endswith('_date') %}
               <input class="form-input" type="date" {{ butedit }} name="{{ key }}" value="{{ val }}"/>
-            {% elif 'fee' in key %}
-              <input class="form-input" type="number" {{ butedit }} name="{{ key }}" value="{{ val }}" step="0.01" min="0"/>
-            {% elif 'age' in key %}
-              <input class="form-input" type="number" {{ butedit }} name="{{ key }}" value="{{ val }}" min="1" max="120"/>
+            {% elif key == '_certificate_fee' %}
+              <input class="form-input" type="number" {{ butedit }} name="{{ key }}"
+                     value="{{ val }}" step="0.01" min="0"/>
+            {% elif key == '_student_age' %}
+              <input class="form-input" type="number" {{ butedit }} name="{{ key }}"
+                     value="{{ val }}" min="1" max="120"/>
             {% elif key == '_certificate_type' %}
               <select class="form-input form-select" name="{{ key }}" {{ butedit }}>
                 {% for opt in ['completion','advanced','specialization','professional'] %}
@@ -149,48 +160,75 @@
             {% else %}
               <input class="form-input" type="text" {{ butedit }} name="{{ key }}" value="{{ val }}"/>
             {% endif %}
-          </td>
-        </tr>
+          </div>
+        </div>
         {% endfor %}
-      </table>
+      </div>
     </form>
+
 
     <div class="nav-row">
       <button type="button" {{ butshow }} class="button1 btn-nav" id="btn-first"
-              onclick="window.location.href='/gform/{{ cname }}?option=first'">⏮ First</button>
+              onclick="nav('first')">⏮ First</button>
       <button type="button" {{ butshow }} class="button1 btn-nav" id="btn-prev"
-              onclick="window.location.href='/gform/{{ cname }}?option=previous'">◀ Previous</button>
+              onclick="nav('previous')">◀ Prev</button>
       <button type="button" {{ butshow }} class="button1 btn-nav" id="btn-next"
-              onclick="window.location.href='/gform/{{ cname }}?option=next'">Next ▶</button>
+              onclick="nav('next')">Next ▶</button>
       <button type="button" {{ butshow }} class="button1 btn-nav" id="btn-last"
-              onclick="window.location.href='/gform/{{ cname }}?option=last'">Last ⏭</button>
+              onclick="nav('last')">Last ⏭</button>
+      <span class="kbd-hint">← → Home End</span>
     </div>
   </div>
 </div>
 
+<style>
+.gform-fields  { display:flex; flex-direction:column; gap:0; }
+.gform-row     { display:flex; align-items:center; gap:1rem; padding:.48rem 0;
+                 border-bottom:1px solid var(--bg); }
+.gform-row:last-child { border-bottom:none; }
+.gform-label   { width:140px; min-width:140px; font-size:.72rem; font-weight:700;
+                 text-transform:uppercase; letter-spacing:.06em; color:var(--muted); }
+.gform-val     { flex:1; }
+.gform-val .form-input { max-width:420px; }
+.kbd-hint { font-size:.7rem; color:var(--muted); margin-left:auto; user-select:none; }
+@media(max-width:600px){
+  .btn-row { gap:4px; }
+  .gform-row { flex-direction:column; align-items:flex-start; gap:.2rem; }
+  .gform-label { width:auto; }
+  .gform-val .form-input { max-width:100%; }
+}
+</style>
+
 <script>
-function toggleFilter() {
-  var p = document.getElementById('filter-panel');
-  var open = p.style.display !== 'none';
-  p.style.display = open ? 'none' : 'block';
-  document.querySelector('.btn-filter-toggle').textContent = open ? '🔽 Filtros' : '🔼 Fechar';
+function nav(opt) {
+  var loading = document.getElementById('loading-bar');
+  if (loading) loading.style.width = '60%';
+  window.location.href = '/gform/{{ cname }}?option=' + opt;
 }
 
-function jumpToId() {
-  var id = document.getElementById('jump-id').value.trim();
-  if (id) window.location.href = '/gform/{{ cname }}?option=goto&search_id=' + id;
+function toggleFilter() {
+  var p   = document.getElementById('filter-panel');
+  var ico = document.getElementById('filter-toggle-icon');
+  var open = p.style.display !== 'none';
+  p.style.display = open ? 'none' : 'block';
+  ico.textContent  = open ? '🔽' : '🔼';
 }
 
 var flash = document.getElementById('flash-msg');
-if (flash) setTimeout(function(){ flash.style.transition='opacity .4s'; flash.style.opacity='0'; setTimeout(function(){ flash.remove(); }, 400); }, 3500);
+if (flash) setTimeout(function(){
+  flash.style.transition = 'opacity .4s';
+  flash.style.opacity    = '0';
+  setTimeout(function(){ flash.remove(); }, 400);
+}, 3500);
 
 document.addEventListener('keydown', function(e) {
-  var editing = document.querySelector('input:not([disabled]):not([readonly]):focus, select:not([disabled]):focus');
+  var active = document.activeElement;
+  var editing = active && (active.tagName === 'INPUT' || active.tagName === 'SELECT' || active.tagName === 'TEXTAREA');
   if (editing) return;
-  if (e.key === 'ArrowLeft')  { var b = document.getElementById('btn-prev');  if(b) b.click(); }
-  if (e.key === 'ArrowRight') { var b = document.getElementById('btn-next');  if(b) b.click(); }
-  if (e.key === 'Home')       { var b = document.getElementById('btn-first'); if(b) b.click(); }
-  if (e.key === 'End')        { var b = document.getElementById('btn-last');  if(b) b.click(); }
+  if (e.key === 'ArrowLeft')  { var b = document.getElementById('btn-prev');  if(b && !b.disabled) b.click(); }
+  if (e.key === 'ArrowRight') { var b = document.getElementById('btn-next');  if(b && !b.disabled) b.click(); }
+  if (e.key === 'Home')       { var b = document.getElementById('btn-first'); if(b && !b.disabled) b.click(); }
+  if (e.key === 'End')        { var b = document.getElementById('btn-last');  if(b && !b.disabled) b.click(); }
 });
 </script>
 {% endblock %}

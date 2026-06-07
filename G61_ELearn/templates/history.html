@@ -1,0 +1,276 @@
+{% extends 'base.html' %}
+{% block head %}
+<style>
+.hs-box  { background:var(--white); border:1px solid var(--border); border-radius:12px;
+           padding:1.25rem 1.5rem; margin-bottom:1.25rem; box-shadow:var(--shadow); }
+.hs-row  { display:flex; gap:1rem; align-items:flex-end; flex-wrap:wrap; }
+.hs-fld  { display:flex; flex-direction:column; gap:.35rem; }
+.hs-lbl  { font-size:.7rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); }
+.hs-inp  { padding:9px 12px; border:1px solid var(--border); border-radius:8px;
+           font-family:'Inter',sans-serif; font-size:.875rem; outline:none;
+           transition:border-color .15s, box-shadow .15s; }
+.hs-inp:focus { border-color:var(--blue); box-shadow:0 0 0 3px rgba(51,74,148,.12); }
+.hs-inp-id   { width:110px; }
+.hs-inp-name { width:280px; }
+.hs-rel      { position:relative; }
+.hs-drop     { position:absolute; top:calc(100% + 3px); left:0; right:0;
+               background:#fff; border:1px solid var(--border); border-radius:8px;
+               box-shadow:var(--shadow-md); max-height:230px; overflow-y:auto;
+               z-index:200; display:none; }
+.hs-it { padding:9px 14px; cursor:pointer; font-size:.85rem;
+         border-bottom:1px solid var(--bg); }
+.hs-it:last-child { border-bottom:none; }
+.hs-it:hover, .hs-it.hs-active { background:var(--blue-light); }
+.hs-it-name { font-weight:600; color:var(--text); }
+.hs-it-sub  { font-size:.73rem; color:var(--muted); margin-top:2px; }
+.hs-sep { display:flex; align-items:center; padding-bottom:4px;
+          color:var(--muted); font-size:.78rem; font-weight:600; }
+
+.tbl-bar { display:flex; align-items:center; gap:.65rem; margin-bottom:.85rem; flex-wrap:wrap; }
+.tbl-bar input { flex:1; min-width:180px; padding:7px 11px; border:1px solid var(--border);
+                 border-radius:7px; font-family:'Inter',sans-serif; font-size:.82rem;
+                 outline:none; transition:border-color .15s; }
+.tbl-bar input:focus { border-color:var(--blue); }
+.tbl-cnt { font-size:.75rem; color:var(--muted); white-space:nowrap; margin-left:auto; }
+.th-s { cursor:pointer; user-select:none; }
+.th-s:hover { color:var(--blue); }
+tr.rh { display:none; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page" style="max-width:1050px;">
+  <div class="page-header">
+    <h2 class="page-title">📋 Histórico de Transações</h2>
+    <div style="display:flex;gap:.5rem;">
+      {% if role != 'admin' %}
+        <a href="/enroll" class="button1 btn-save">➕ Nova Inscrição</a>
+      {% endif %}
+      <a href="/" class="button1 btn-exit">← Voltar</a>
+    </div>
+  </div>
+
+  {% if role == 'admin' %}
+
+  <div class="hs-box">
+    <div class="hs-row">
+
+
+      <div class="hs-fld">
+        <label class="hs-lbl">ID do Estudante</label>
+        <div style="display:flex;gap:.4rem;">
+          <input id="hs-id" class="hs-inp hs-inp-id" type="number" min="1"
+                 placeholder="ex: 42"
+                 onkeydown="if(event.key==='Enter')goId()"/>
+          <button class="button1 btn-save" onclick="goId()">Ir →</button>
+        </div>
+      </div>
+
+      <div class="hs-sep">ou</div>
+
+
+      <div class="hs-fld" style="flex:1;min-width:240px;">
+        <label class="hs-lbl">Nome do Estudante</label>
+        <div class="hs-rel">
+          <input id="hs-name" class="hs-inp hs-inp-name" type="text"
+                 autocomplete="off"
+                 placeholder="Começa a escrever o nome..."
+                 value="{% if student %}{{ student._student_name | e }}{% endif %}"
+                 oninput="onName(this.value)"
+                 onkeydown="nameKey(event)"/>
+          <div class="hs-drop" id="hs-drop"></div>
+        </div>
+      </div>
+    </div>
+
+    {% if student %}
+    <div style="margin-top:.8rem;padding-top:.8rem;border-top:1px solid var(--border);
+                display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;">
+      <span style="font-size:.78rem;color:var(--muted);">A mostrar:</span>
+      <strong>{{ student._student_name }}</strong>
+      <span class="tag">ID {{ student._id }}</span>
+      <span style="font-size:.8rem;color:var(--muted);">{{ student._student_email }} · {{ student._student_country }}</span>
+      <a href="/history" class="button1 btn-cancel"
+         style="margin-left:auto;font-size:.75rem;padding:4px 11px;">✕ Limpar</a>
+    </div>
+    {% endif %}
+  </div>
+  {% endif %}
+
+
+  {% if student %}
+  <div class="student-info-card">
+    <div class="sic-avatar">{{ student._student_name[0] | upper }}</div>
+    <div class="sic-body">
+      <div class="sic-name">{{ student._student_name }}</div>
+      <div class="sic-meta">
+        <span>✉ {{ student._student_email }}</span>
+        <span>🌍 {{ student._student_country }}</span>
+        <span>🎂 {{ student._student_age }} anos</span>
+        <span>🆔 ID: {{ student._id }}</span>
+      </div>
+    </div>
+    {% if transactions %}
+    <div class="sic-stats">
+      <div class="sic-stat">
+        <span class="sic-stat-n">{{ transactions | length }}</span>
+        <span class="sic-stat-l">Transações</span>
+      </div>
+      <div class="sic-stat">
+        <span class="sic-stat-n">{{ "%.2f"|format(transactions | sum(attribute='_certificate_fee')) }}€</span>
+        <span class="sic-stat-l">Total Gasto</span>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+  {% if transactions %}
+  <div class="stats-card">
+    <div class="tbl-bar">
+      <span style="font-size:.75rem;font-weight:700;color:var(--muted);">🔎 Filtrar:</span>
+      <input type="text" placeholder="Data, plataforma, certificado, pagamento..."
+             oninput="filterTbl(this.value)"/>
+      <span class="tbl-cnt" id="tbl-cnt">{{ transactions | length }} registos</span>
+    </div>
+    <table class="stats-table" id="ttbl">
+      <thead>
+        <tr>
+          <th class="th-s" onclick="sortTbl(0)">ID ⇅</th>
+          <th class="th-s" onclick="sortTbl(1)">Data ⇅</th>
+          <th>Plataforma</th>
+          <th>Certificado</th>
+          <th class="th-s" style="text-align:right" onclick="sortTbl(4)">Fee ⇅</th>
+          <th>Pagamento</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for t in transactions %}
+      <tr data-s="{{ t._id }} {{ t.issue_date }}
+        {%- if t._platform_id in platforms %} {{ platforms[t._platform_id]._platform_name }}{% endif %}
+        {%- if t._certificate_id in certificates %} {{ certificates[t._certificate_id]._certificate_name }} {{ certificates[t._certificate_id]._certificate_type }}{% endif %}
+        {{ t._certificate_fee }} {{ t._payment_method }}">
+        <td style="color:var(--muted);font-size:.75rem;">{{ t._id }}</td>
+        <td>{{ t.issue_date }}</td>
+        <td>{% if t._platform_id in platforms %}{{ platforms[t._platform_id]._platform_name }}{% else %}–{% endif %}</td>
+        <td>
+          {% if t._certificate_id in certificates %}
+            {{ certificates[t._certificate_id]._certificate_name[:40] }}
+            <span class="tag">{{ certificates[t._certificate_id]._certificate_type }}</span>
+          {% else %}–{% endif %}
+        </td>
+        <td class="num-col">{{ "%.2f"|format(t._certificate_fee) }}€</td>
+        <td>{{ t._payment_method }}</td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% else %}
+  <div class="empty-state">
+    <span class="empty-icon">🗂️</span>
+    <p>Sem transações registadas para este estudante.</p>
+    <a href="/enroll" class="button1 btn-save" style="margin-top:.75rem;">➕ Fazer Inscrição</a>
+  </div>
+  {% endif %}
+
+  {% elif role == 'admin' %}
+  <div class="empty-state">
+    <span class="empty-icon">🔍</span>
+    <p>Introduz um ID ou nome para pesquisar um estudante.</p>
+  </div>
+  {% endif %}
+</div>
+
+<script>
+
+function goId() {
+  var v = document.getElementById('hs-id').value.trim();
+  if (v) window.location.href = '/history?student_id=' + v;
+}
+
+var drop  = document.getElementById('hs-drop');
+var nInp  = document.getElementById('hs-name');
+var ntimer;
+
+function onName(v) {
+  clearTimeout(ntimer);
+  if (!v.trim()) { drop.style.display='none'; return; }
+  ntimer = setTimeout(function(){ fetchNames(v.trim()); }, 160);
+}
+
+function fetchNames(q) {
+  fetch('/api/students?q=' + encodeURIComponent(q) + '&mode=prefix')
+    .then(function(r){ return r.json(); })
+    .then(function(data) {
+      if (!data.length) {
+        drop.innerHTML = '<div style="padding:10px 14px;font-size:.84rem;color:var(--muted);font-style:italic;">Sem resultados</div>';
+        drop.style.display = 'block'; return;
+      }
+      drop.innerHTML = data.map(function(s) {
+        return '<div class="hs-it" onclick="pick(' + s.id + ',\'' +
+               s.name.replace(/\\/g,'\\\\').replace(/'/g,"\\'") + '\')">' +
+               '<div class="hs-it-name">' + s.name +
+               ' <span style="color:var(--muted);font-size:.73rem;font-weight:400">ID: ' + s.id + '</span></div>' +
+               '<div class="hs-it-sub">' + s.email + '</div></div>';
+      }).join('');
+      drop.style.display = 'block';
+    });
+}
+
+function pick(id) {
+  drop.style.display = 'none';
+  window.location.href = '/history?student_id=' + id;
+}
+
+function nameKey(e) {
+  var items = drop.querySelectorAll('.hs-it');
+  var active = drop.querySelector('.hs-it.hs-active');
+  var idx = active ? Array.from(items).indexOf(active) : -1;
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    if (idx < items.length - 1) { if (active) active.classList.remove('hs-active'); items[idx+1].classList.add('hs-active'); }
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    if (idx > 0) { active.classList.remove('hs-active'); items[idx-1].classList.add('hs-active'); }
+  } else if (e.key === 'Enter') {
+    e.preventDefault();
+    var a = drop.querySelector('.hs-it.hs-active');
+    if (a) a.click();
+  } else if (e.key === 'Escape') {
+    drop.style.display = 'none';
+  }
+}
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.hs-rel')) drop.style.display = 'none';
+});
+
+function filterTbl(q) {
+  var lo = q.toLowerCase().trim();
+  var rows = document.querySelectorAll('#ttbl tbody tr');
+  var vis = 0;
+  rows.forEach(function(r) {
+    var show = !lo || (r.getAttribute('data-s') || '').toLowerCase().includes(lo);
+    r.classList.toggle('rh', !show);
+    if (show) vis++;
+  });
+  var el = document.getElementById('tbl-cnt');
+  if (el) el.textContent = vis + ' registo' + (vis === 1 ? '' : 's');
+}
+
+var sd = {};
+function sortTbl(col) {
+  var tbody = document.querySelector('#ttbl tbody');
+  var rows = Array.from(tbody.querySelectorAll('tr:not(.rh)'));
+  sd[col] = !sd[col];
+  rows.sort(function(a, b) {
+    var av = a.cells[col] ? a.cells[col].textContent.trim() : '';
+    var bv = b.cells[col] ? b.cells[col].textContent.trim() : '';
+    var an = parseFloat(av.replace('€', '')), bn = parseFloat(bv.replace('€', ''));
+    if (!isNaN(an) && !isNaN(bn)) return sd[col] ? an - bn : bn - an;
+    return sd[col] ? av.localeCompare(bv) : bv.localeCompare(av);
+  });
+  rows.forEach(function(r) { tbody.appendChild(r); });
+}
+</script>
+{% endblock %}

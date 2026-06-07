@@ -1,22 +1,39 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="login-wrap">
-  <h1 class="login-title">Login</h1>
-  <div class="card">
+<div class="login-page">
+  <div class="login-card">
+    <div class="login-brand">
+      <span class="login-brand-icon">🎓</span>
+      <h1 class="login-brand-title">ELearn G61</h1>
+      <p class="login-brand-sub">E-Learning Certificates Platform</p>
+    </div>
+    <div class="login-divider"></div>
     <form action="/chklogin" method="post">
       <div class="login-group">
-        <label>Utilizador</label>
-        <input type="text" name="user" autocomplete="username" placeholder="username" autofocus/>
+        <label>Utilizador / Email</label>
+        <input type="text" name="user" autocomplete="username"
+               placeholder="admin ou email do estudante" autofocus/>
       </div>
       <div class="login-group">
-        <label>Password</label>
-        <input type="password" name="password" autocomplete="current-password" placeholder="••••••••"/>
+        <label>Password / ID</label>
+        <input type="password" name="password" autocomplete="current-password"
+               placeholder="password ou ID do estudante"/>
       </div>
       <button type="submit" class="login-btn">Entrar →</button>
     </form>
     {% if resul %}
       <p class="login-error">⚠ {{ resul }}</p>
     {% endif %}
+    <div class="login-hint">
+      <span class="hint-row">🛡️ <b>Admin:</b> utilizador + password</span>
+      <span class="hint-row">👤 <b>Estudante:</b> email + ID de estudante</span>
+    </div>
+    <div class="login-divider" style="margin-top:1.2rem;"></div>
+    <div class="login-hint" style="margin-top:.6rem;">
+      <span class="hint-row">Novo na plataforma?
+        <a href="/register" style="color:var(--accent,#4f8ef7);font-weight:600;">Criar Conta →</a>
+      </span>
+    </div>
   </div>
 </div>
 {% endblock %}
