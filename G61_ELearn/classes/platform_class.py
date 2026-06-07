@@ -1,8 +1,3 @@
-"""
-@author: Grupo 61 - FEUP PC II 2025/2026
-objective: class Platform
-"""
-from collections import defaultdict, Counter
 from classes.gclass import Gclass
 
 class Platform(Gclass):
@@ -24,54 +19,97 @@ class Platform(Gclass):
         Platform.lst.append(id)
 
     @property
-    def id(self): return self._id
+    def id(self): 
+        return self._id
 
     @property
-    def platform_name(self): return self._platform_name
+    def platform_name(self): 
+        return self._platform_name
+    
     @platform_name.setter
-    def platform_name(self, v): self._platform_name = str(v)
+    def platform_name(self, v): 
+        self._platform_name = str(v)
 
     @property
-    def platform_country(self): return self._platform_country
+    def platform_country(self): 
+        return self._platform_country
+    
     @platform_country.setter
-    def platform_country(self, v): self._platform_country = str(v)
-
+    def platform_country(self, v): 
+        self._platform_country = str(v)
 
     @classmethod
     def revenue_per_platform(cls, trans_obj, top_n=10):
-        totals = defaultdict(float)
+        totals = {}
         for t in trans_obj.values():
-            totals[t._platform_id] += t._certificate_fee
-        ranked = sorted(totals.items(), key=lambda x: x[1], reverse=True)[:top_n]
+            pid = t._platform_id
+            if pid not in totals:
+                totals[pid] = 0.0
+            totals[pid] += t._certificate_fee
+
+        pairs = []
+        for pid, rev in totals.items():
+            pairs.append((pid, rev))
+        pairs.sort(key=lambda x: x[1], reverse=True)
+
         result = []
-        for pid, rev in ranked:
-            name = cls.obj[pid].platform_name if pid in cls.obj else f'Platform {pid}'
+        for pid, rev in pairs[:top_n]:
+            if pid in cls.obj:
+                name = cls.obj[pid].platform_name
+            else:
+                name = 'Platform ' + str(pid)
             result.append({'id': pid, 'name': name, 'revenue': round(rev, 2)})
         return result
 
     @classmethod
     def transactions_per_platform(cls, trans_obj, top_n=10):
-        counts = Counter(t._platform_id for t in trans_obj.values())
-        ranked = counts.most_common(top_n)
+        counts = {}
+        for t in trans_obj.values():
+            pid = t._platform_id
+            if pid not in counts:
+                counts[pid] = 0
+            counts[pid] += 1
+
+        pairs = []
+        for pid, count in counts.items():
+            pairs.append((pid, count))
+        pairs.sort(key=lambda x: x[1], reverse=True)
+
         result = []
-        for pid, count in ranked:
-            name = cls.obj[pid].platform_name if pid in cls.obj else f'Platform {pid}'
+        for pid, count in pairs[:top_n]:
+            if pid in cls.obj:
+                name = cls.obj[pid].platform_name
+            else:
+                name = 'Platform ' + str(pid)
             result.append({'id': pid, 'name': name, 'count': count})
         return result
 
     @classmethod
     def platforms_per_country(cls):
-        counts = Counter(p.platform_country for p in cls.obj.values())
-        return sorted(counts.items(), key=lambda x: x[1], reverse=True)
+        counts = {}
+        for p in cls.obj.values():
+            country = p.platform_country
+            if country not in counts:
+                counts[country] = 0
+            counts[country] += 1
+
+        pairs = []
+        for country, count in counts.items():
+            pairs.append((country, count))
+        pairs.sort(key=lambda x: x[1], reverse=True)
+        return pairs
 
     @classmethod
     def avg_revenue_per_platform(cls, trans_obj):
-        totals = defaultdict(float)
+        totals = {}
         for t in trans_obj.values():
-            totals[t._platform_id] += t._certificate_fee
+            pid = t._platform_id
+            if pid not in totals:
+                totals[pid] = 0.0
+            totals[pid] += t._certificate_fee
         if not totals:
             return 0.0
         return round(sum(totals.values()) / len(totals), 2)
 
     def __str__(self):
-        return f'Id:{self._id}, Name:{self._platform_name}, Country:{self._platform_country}'
+        return 'Id:' + str(self._id) + ', Name:' + self._platform_name + ', Country:' + self._platform_country
